@@ -34,12 +34,11 @@ class Network:
         result = [0.0] * end
         for i in range(end):
             for j in range(end + end):
-                
                 try:
                     result[i] += layer[i][j] * f(seq[j])
-                except:
-                    print(layer[i][j])
-                
+                except TypeError:
+                    print(layer)
+                    print("ERROR")
         return result
 
 
@@ -54,9 +53,8 @@ class Network:
     
     def crossover(self, other):
         layer_index = random.randint(1, int(len(self.__layers) - 2))
-        print(layer_index)
         next_edges = self.__edges[:layer_index]
-        next_edges.append(other.get_edges()[layer_index:])
+        next_edges += other.get_edges()[layer_index:]
         return Network(e=next_edges)
         
         
@@ -185,11 +183,10 @@ def genetic(practice, population_size=22, max_gen=800, max_con=12):
         pairs = pair_solutions(solutions)
         
         ## crossover
-        next_gen = [crossover1(solutions=pairs)]
-        print("next_gen")
-        print(next_gen[0])
+        next_gen = crossover1(solutions=pairs)
+        
 
-        solutions = next_gen[0] + elite
+        solutions = next_gen + elite
         ## find best
         next_sol = select_next(solutions, practice=practice)
 
