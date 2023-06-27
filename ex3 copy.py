@@ -224,7 +224,7 @@ def select_next(options, practice):
             best = s
     return best
 
-def genetic(practice, population_size=100, max_gen=800, max_con=12):
+def genetic(practice, population_size=1000, max_gen=800, max_con=12):
     solutions = [Network() for _ in range(population_size)]
     best_sol = None
     best_score = -1

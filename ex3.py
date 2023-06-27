@@ -22,6 +22,9 @@ def select_value(n1, n2):
 def avg_value(n1, n2):
     return (n1 + n2) / 2
 
+def fit_sort(a):
+    return a.get_fitness()
+
 class Network:
     # def __init__(self, e=None):
     #     self.__fitness = None
@@ -65,7 +68,7 @@ class Network:
     def generate_weights(input_nodes, output_nodes):
         weights = []
         for _ in range(input_nodes):
-            layer_weights = [random.uniform(-1, 1) for _ in range(output_nodes)]
+            layer_weights = [random.uniform(-10, 10) for _ in range(output_nodes)]
             weights.append(layer_weights)
         return weights
     
@@ -134,6 +137,12 @@ class Network:
 
     def get_edges(self):
         return self.__edges
+    
+    def get_fitness(self):
+        if(self.__fitness):
+            return self.__fitness
+        else:
+            return 0
     
     ## make a mutation
     def mutate(self):
@@ -224,7 +233,7 @@ def select_next(options, practice):
             best = s
     return best
 
-def genetic(practice, population_size=100, max_gen=800, max_con=12):
+def genetic(practice, population_size=200, max_gen=800, max_con=30):
     solutions = [Network() for _ in range(population_size)]
     best_sol = None
     best_score = -1
@@ -240,6 +249,7 @@ def genetic(practice, population_size=100, max_gen=800, max_con=12):
         ## mix
         random.shuffle(solutions)
         ## keep for next generation
+        solutions.sort(key=fit_sort)
         end = int(0.15 * len(solutions))
         elite = solutions[:end]
         solutions = solutions[end:]
