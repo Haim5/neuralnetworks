@@ -4,6 +4,14 @@ import sys
 def sigmoid(x):
     return 1 / (1 + pow(2.71828, -x))
 
+def select_value(n1, n2):
+    if random.randint(0,1) == 1:
+        return n1
+    return n2
+
+def avg_value(n1, n2):
+    return (n1 + n2) / 2
+
 class Network:
     def __init__(self, e=None):
         self.__fitness = None
@@ -21,7 +29,9 @@ class Network:
                 for j in range(end):
                     col_copy = col.copy()
                     col_copy[j] = 0
+                    col_copy[j+1] = 0
                     col_copy[(j + end)] = 0
+                    col_copy[(j + end - 1)] = 0
                     net.append(col_copy)
                 edges.append(net)
             edges.append([[random.uniform(-1, 1), random.uniform(-1, 1)]])
@@ -37,7 +47,7 @@ class Network:
                 try:
                     result[i] += layer[i][j] * f(seq[j])
                 except TypeError:
-                    print(layer)
+                    ##print(layer)
                     print("ERROR")
         return result
 
@@ -51,11 +61,18 @@ class Network:
             return 1
         return 0
     
-    def crossover(self, other):
-        layer_index = random.randint(1, int(len(self.__layers) - 2))
-        next_edges = self.__edges[:layer_index]
-        next_edges += other.get_edges()[layer_index:]
+    def crossover(self, other, f):
+        next_edges = []
+        for i in range(int(len(self.__edges))):
+            t1 = []
+            for j in range(int(len(self.__edges[i]))):
+                t2 = []
+                for k in range(int(len(self.__edges[i][j]))):
+                    t2.append(f(other.get_edges()[i][j][k], self.__edges[i][j][k])) 
+                t1.append(t2)
+            next_edges.append(t1)
         return Network(e=next_edges)
+
         
         
 
@@ -65,13 +82,15 @@ class Network:
     ## make a mutation
     def mutate(self):
         ## pick random cell
-        layer_index = random.randint(0, int(len(self.__layers) - 2))
-        layer = self.__edges[layer_index]
-        edge_index = random.randint(0, int(len(layer) - 1))
-        sub_edge = layer[edge_index] 
-        sub_edge_index = random.randint(0, int(len(sub_edge) - 1))
-        ## assign random value
-        sub_edge[sub_edge_index] = random.uniform(-1, 1)
+        times = random.randint(1,2)
+        for _ in range(times):
+            layer_index = random.randint(0, int(len(self.__layers) - 2))
+            layer = self.__edges[layer_index]
+            edge_index = random.randint(0, int(len(layer) - 1))
+            sub_edge = layer[edge_index] 
+            sub_edge_index = random.randint(0, int(len(sub_edge) - 1))
+            ## assign random value
+            sub_edge[sub_edge_index] = random.uniform(-1, 1)
             
 
     ## calculate fitness score
@@ -110,26 +129,28 @@ def pair_solutions(solutions):
 ## random crossover
 def crossover1(solutions):
     ## odds for a parent to stay for the next generation
-    stay_odds = 0.35
+    stay_odds = 0.45
     ## odds for a mutation
-    mu_odds = 0.01
+    mu_odds = 0.02
     next_gen = []
     for p in solutions:
-        children = random.randint(1, 2)
+        children = random.randint(1, 3)
         sol1 = p[0]
         sol2 = p[1]
-        for _ in range(0, children):
-            off1 = sol1.crossover(sol2)
-            next_gen.append(off1)
-            off2 = sol2.crossover(sol1)
-            next_gen.append(off2)
-
+        for _ in range(children):
+            ## create new
+            off1 = sol2.crossover(sol1, f=select_value)
+            off2 = sol1.crossover(sol2, f=avg_value)
+            
+            ## mutation
             if random.random() <= mu_odds:
-                    ## mutation
                 off1.mutate()
             if random.random() <= mu_odds:
-                    ## mutation
                 off2.mutate()
+            
+            ## add
+            next_gen.append(off1)
+            next_gen.append(off2)
 
         if random.random() <= stay_odds:
             next_gen.append(sol1)
@@ -158,14 +179,14 @@ def genetic(practice, population_size=22, max_gen=800, max_con=12):
     slice_size = 0
 
     while gen < max_gen and con < max_con and len(solutions) > slice_size:
-        if len(solutions) > 10000:
-            slice_size = 4
+        if len(solutions) > 50:
+            slice_size = 3
         else:
             slice_size = 2
         ## mix
         random.shuffle(solutions)
         ## keep for next generation
-        end = int(0.15 * len(solutions))
+        end = int(0.1 * len(solutions))
         elite = solutions[:end]
         solutions = solutions[end:]
         ## split to slices and choose who continues on
@@ -200,7 +221,7 @@ def genetic(practice, population_size=22, max_gen=800, max_con=12):
         gen += 1
         print(best_score)
 
-    print("Best fit score: " + str(best_score))
+    print("Best practice fit score: " + str(best_score))
     print("Generation: " + str(gen))
     return best_sol
 
@@ -236,14 +257,13 @@ def parse(f):
 
 
 def main():
-    # if len(sys.argv) < 2:
-    #     return
-    # args = sys.argv[1]
+
     practice, test = parse("/home/haim/Desktop/ex3/nn0.txt")
     print("Now it runs, sit patiently dumbass")
     ans = genetic(practice=practice)
+    ans.print()
     x = ans.fitness(test, override=True)
-    print(x)
+    print("Test result:" + str(x))
 
 if __name__=="__main__":
     main()
