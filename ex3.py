@@ -4,57 +4,130 @@ import sys
 def sigmoid(x):
     return 1 / (1 + pow(2.71828, -x))
 
+def dot_product(weights, seq):
+    print(weights)
+    print(seq)
+    if len(weights) != len(seq):
+        raise ValueError("Lengths of weights and seq must match.")
+    result = 0
+    for w, x in zip(weights, seq):
+        result += w * x
+    return result
+
+def select_value(n1, n2):
+    if random.randint(0,1) == 1:
+        return n1
+    return n2
+
+def avg_value(n1, n2):
+    return (n1 + n2) / 2
+
 class Network:
+    # def __init__(self, e=None):
+    #     self.__fitness = None
+    #     layers = [16, 2, 1]
+    #     if e:
+    #         self.__edges = e
+    #     else:
+    #         edges = []
+    #         for i in layers[:-2]:
+    #             net = []
+    #             end = int(i/2)
+    #             for j in range(end):
+    #                 col = []
+    #                 for k in range(i):
+    #                     col.append(random.uniform(-1, 1))
+    #                 net.append(col)
+    #             edges.append(net)
+    #         edges.append([[random.uniform(-1, 1), random.uniform(-1, 1)]])
+    #         self.__edges = edges
+    #     self.__layers = layers
+    #     self.print_weights()
+
     def __init__(self, e=None):
-        self.__fitness = None
-        layers = [16, 8, 4, 2, 1]
+        self.num_nodes = [17, 2, 1]
         if e:
             self.__edges = e
         else:
-            edges = []
-            for i in layers[:-2]:
-                col = []
-                for j in range(i):
-                    col.append(random.uniform(-1, 1))
-                net = []
-                end = int(i/2)
-                for j in range(end):
-                    col_copy = col.copy()
-                    col_copy[j] = 0
-                    col_copy[(j + end)] = 0
-                    net.append(col_copy)
-                edges.append(net)
-            edges.append([[random.uniform(-1, 1), random.uniform(-1, 1)]])
-            self.__edges = edges
-        self.__layers = layers
+            self.__edges = self.initialize_weights()
+        self.__fitness = None
+        self.__layers = self.num_nodes
+        # self.print_weights()
+
+    def initialize_weights(self):
+        weights = []
+        for i in range(len(self.num_nodes) - 1):
+            layer_weights = self.generate_weights(self.num_nodes[i], self.num_nodes[i + 1])
+            weights.append(layer_weights)
+        return weights
+
+    @staticmethod
+    def generate_weights(input_nodes, output_nodes):
+        weights = []
+        for _ in range(input_nodes):
+            layer_weights = [random.uniform(-1, 1) for _ in range(output_nodes)]
+            weights.append(layer_weights)
+        return weights
+    
+    def print_weights(self):
+        for i, layer_weights in enumerate(self.__edges):
+            print(f"Weights for layer {i + 1}:")
+            for weights in layer_weights:
+                print(weights)
+            print()
+
+
+    # def predict(self, seq):
+    #     output = [int(c) for c in seq]
+    #     for i, layer_weights in enumerate(self.__edges):
+    #         layer_output = []
+    #         for weights in layer_weights:
+    #             neuron_output = sum(w * x for w, x in zip(weights, output))
+    #             neuron_output = sigmoid(neuron_output)
+    #             layer_output.append(neuron_output)
+    #         output = layer_output
+    #     print(output)
+    #     return output
 
             
     def predict_layer(self, seq, layer, f=sigmoid):
-        end = int(len(seq) / 2)
-        result = [0.0] * end
-        for i in range(end):
-            for j in range(end + end):
+        end = len(layer)
+        result = [0.0] * len(layer[0])
+        for j in range(len(layer[0])):
+            for i in range(end):
                 try:
-                    result[i] += layer[i][j] * f(seq[j])
+                    result[j] += layer[i][j] * seq[i]
                 except TypeError:
                     print(layer)
                     print("ERROR")
+            result[j] = f(result[j])
         return result
 
 
     def predict(self, seq, f=sigmoid):
         output = [float(x) for x in seq]
+        output.append(1)
         for i in range(len(self.__layers) - 1):
             output = self.predict_layer(output, self.__edges[i], f=f)
-        score = f(output[0])
+        score = output[0]
         if score > 0.5:
             return 1
         return 0
     
-    def crossover(self, other):
-        layer_index = random.randint(1, int(len(self.__layers) - 2))
-        next_edges = self.__edges[:layer_index]
-        next_edges += other.get_edges()[layer_index:]
+    def crossover(self, other, f):
+        # layer_index = random.randint(1, int(len(self.__layers) - 2))
+        # next_edges = self.__edges[:layer_index]
+        # next_edges += other.get_edges()[layer_index:]
+        # return Network(e=next_edges)
+        next_edges = []
+        for i in range(int(len(self.__edges))):
+            t1 = []
+            for j in range(int(len(self.__edges[i]))):
+                t2 = []
+                for k in range(int(len(self.__edges[i][j]))):
+                    t2.append(f(other.get_edges()[i][j][k], self.__edges[i][j][k])) 
+                t1.append(t2)
+            next_edges.append(t1)
         return Network(e=next_edges)
         
         
@@ -64,15 +137,15 @@ class Network:
     
     ## make a mutation
     def mutate(self):
-        ## pick random cell
-        layer_index = random.randint(0, int(len(self.__layers) - 2))
-        layer = self.__edges[layer_index]
-        edge_index = random.randint(0, int(len(layer) - 1))
-        sub_edge = layer[edge_index] 
-        sub_edge_index = random.randint(0, int(len(sub_edge) - 1))
-        ## assign random value
-        sub_edge[sub_edge_index] = random.uniform(-1, 1)
-            
+        for i in range(0,10):
+            ## pick random cell
+            layer_index = random.randint(0, int(len(self.__layers) - 2))
+            layer = self.__edges[layer_index]
+            edge_index = random.randint(0, int(len(layer) - 1))
+            sub_edge = layer[edge_index] 
+            sub_edge_index = random.randint(0, int(len(sub_edge) - 1))
+            ## assign random value
+            sub_edge[sub_edge_index] = min(1, sub_edge[sub_edge_index] * 1.1)
 
     ## calculate fitness score
     def fitness(self, test : dict(), override=False):
@@ -119,10 +192,9 @@ def crossover1(solutions):
         sol1 = p[0]
         sol2 = p[1]
         for _ in range(0, children):
-            off1 = sol1.crossover(sol2)
-            next_gen.append(off1)
-            off2 = sol2.crossover(sol1)
-            next_gen.append(off2)
+            ## create new
+            off1 = sol2.crossover(sol1, f=select_value)
+            off2 = sol1.crossover(sol2, f=avg_value)
 
             if random.random() <= mu_odds:
                     ## mutation
@@ -130,6 +202,9 @@ def crossover1(solutions):
             if random.random() <= mu_odds:
                     ## mutation
                 off2.mutate()
+
+            next_gen.append(off1)
+            next_gen.append(off2)
 
         if random.random() <= stay_odds:
             next_gen.append(sol1)
@@ -149,7 +224,7 @@ def select_next(options, practice):
             best = s
     return best
 
-def genetic(practice, population_size=22, max_gen=800, max_con=12):
+def genetic(practice, population_size=100, max_gen=800, max_con=12):
     solutions = [Network() for _ in range(population_size)]
     best_sol = None
     best_score = -1
@@ -239,8 +314,8 @@ def main():
     # if len(sys.argv) < 2:
     #     return
     # args = sys.argv[1]
-    practice, test = parse("/home/haim/Desktop/ex3/nn0.txt")
-    print("Now it runs, sit patiently dumbass")
+    practice, test = parse("nn0.txt")
+    print("Runing, please wait")
     ans = genetic(practice=practice)
     x = ans.fitness(test, override=True)
     print(x)
