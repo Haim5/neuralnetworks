@@ -4,15 +4,6 @@ import sys
 def sigmoid(x):
     return 1 / (1 + pow(2.71828, -x))
 
-def dot_product(weights, seq):
-    print(weights)
-    print(seq)
-    if len(weights) != len(seq):
-        raise ValueError("Lengths of weights and seq must match.")
-    result = 0
-    for w, x in zip(weights, seq):
-        result += w * x
-    return result
 
 def select_value(n1, n2):
     if random.randint(0,1) == 1:
@@ -22,37 +13,11 @@ def select_value(n1, n2):
 def avg_value(n1, n2):
     return (n1 + n2) / 2
 
-def fit_sort(a):
-    return a.get_fitness()
 
 class Network:
-    # def __init__(self, e=None):
-    #     self.__fitness = None
-    #     layers = [16, 2, 1]
-    #     if e:
-    #         self.__edges = e
-    #     else:
-    #         edges = []
-    #         for i in layers[:-2]:
-    #             net = []
-    #             end = int(i/2)
-    #             for j in range(end):
-    #                 col = []
-    #                 for k in range(i):
-    #                     col.append(random.uniform(-1, 1))
-    #                 net.append(col)
-    #             edges.append(net)
-    #         edges.append([[random.uniform(-1, 1), random.uniform(-1, 1)]])
-    #         self.__edges = edges
-    #     self.__layers = layers
-    #     self.print_weights()
-
     def __init__(self, e=None):
         self.num_nodes = [16, 2, 1]
-        
         if not e:
-
-            
             x1 = sum(self.num_nodes)
             edges = [[0.0] * x1 for _ in range(x1)]
             for i in range(self.num_nodes[0]):
@@ -67,28 +32,10 @@ class Network:
             self.__edges = edges
         else:
             self.__edges = e
-
-        ##self.__layers = layers
         self.__fitness = None
         self.__layers = self.num_nodes
-        # self.print_weights()
+      
 
-    def initialize_weights(self):
-        weights = []
-        for i in range(len(self.num_nodes) - 1):
-            layer_weights = self.generate_weights(self.num_nodes[i], self.num_nodes[i + 1])
-            weights.append(layer_weights)
-        return weights
-
-    @staticmethod
-    def generate_weights(input_nodes, output_nodes):
-        weights = []
-        
-        for _ in range(input_nodes):
-            x = random.uniform(-1, 1)
-            layer_weights = [x for _ in range(output_nodes)]
-            weights.append(layer_weights)
-        return weights
     
     def print_weights(self):
         for i, layer_weights in enumerate(self.__edges):
@@ -98,31 +45,6 @@ class Network:
             print()
 
 
-    # def predict(self, seq):
-    #     output = [int(c) for c in seq]
-    #     for i, layer_weights in enumerate(self.__edges):
-    #         layer_output = []
-    #         for weights in layer_weights:
-    #             neuron_output = sum(w * x for w, x in zip(weights, output))
-    #             neuron_output = sigmoid(neuron_output)
-    #             layer_output.append(neuron_output)
-    #         output = layer_output
-    #     print(output)
-    #     return output
-
-            
-    def predict_layer(self, seq, layer, f=sigmoid):
-        end = len(layer)
-        result = [0.0] * len(layer[0])
-        for j in range(len(layer[0])):
-            for i in range(end):
-                try:
-                    result[j] += layer[i][j] * seq[i]
-                except TypeError:
-                    print(layer)
-                    print("ERROR")
-            result[j] = f(result[j])
-        return result
 
 
     def predict(self, values):
@@ -139,10 +61,6 @@ class Network:
         return 0
     
     def crossover(self, other, f):
-        # layer_index = random.randint(1, int(len(self.__layers) - 2))
-        # next_edges = self.__edges[:layer_index]
-        # next_edges += other.get_edges()[layer_index:]
-        # return Network(e=next_edges)
         next_edges = []
         for i in range(int(sum(self.__layers))):
             t1 = []
@@ -188,6 +106,9 @@ class Network:
             return self.__fitness
         self.__fitness = 0
         return 0
+
+    def parse_out(self):
+        return '\n'.join([' '.join(map(str, sublist)) for sublist in self.__edges])
 
 
     def print(self):
@@ -252,7 +173,7 @@ def select_next(options, practice):
             best = s
     return best
 
-def genetic(practice, population_size=100, max_gen=800, max_con=30):
+def genetic(practice, population_size=100, max_gen=100, max_con=20):
     solutions = [Network() for _ in range(population_size)]
     best_sol = None
     best_score = -1
@@ -261,14 +182,13 @@ def genetic(practice, population_size=100, max_gen=800, max_con=30):
     slice_size = 0
 
     while gen < max_gen and con < max_con and len(solutions) > slice_size:
-        if len(solutions) > 1000:
+        if len(solutions) > 300:
             slice_size = 4
         else:
             slice_size = 2
         ## mix
         random.shuffle(solutions)
         ## keep for next generation
-        ##solutions.sort(key=fit_sort)
         end = int(0.15 * len(solutions))
         elite = solutions[:end]
         solutions = solutions[end:]
@@ -311,7 +231,7 @@ def genetic(practice, population_size=100, max_gen=800, max_con=30):
 
 
 
-def parse(f):
+def parse_in(f):
     practice = dict()
     test = dict()
     # Read the data from the original file
@@ -338,16 +258,24 @@ def parse(f):
 
     return practice, test
 
+def parse_out(ans, dest):
+    with open(dest, 'w') as file:
+        file.write(ans.parse_out())
 
 def main():
-    # if len(sys.argv) < 2:
-    #     return
-    # args = sys.argv[1]
-    practice, test = parse("nn0.txt")
-    print("Runing, please wait")
-    ans = genetic(practice=practice)
-    x = ans.fitness(test, override=True)
-    print(x)
+    if len(sys.argv) < 2:
+        print("Missing argument")
+    else:
+        n = sys.argv[1]
+        data = "nn" + n + ".txt"
+        dest = "wnet" + n + ".txt"
+        practice, test = parse_in(data)
+        print("Running, please wait")
+        ans = genetic(practice=practice)
+        x = ans.fitness(test, override=True)
+        print(x)
+        parse_out(ans=ans, dest=dest)
+        print("DONE!")
 
 if __name__=="__main__":
     main()
