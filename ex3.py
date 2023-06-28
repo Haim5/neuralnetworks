@@ -48,7 +48,7 @@ class Network:
     #     self.print_weights()
 
     def __init__(self, e=None):
-        self.num_nodes = [17, 2, 1]
+        self.num_nodes = [17, 3, 1]
         if e:
             self.__edges = e
         else:
@@ -59,16 +59,22 @@ class Network:
 
     def initialize_weights(self):
         weights = []
-        for i in range(len(self.num_nodes) - 1):
+        for i in range(len(self.num_nodes) - 2):
             layer_weights = self.generate_weights(self.num_nodes[i], self.num_nodes[i + 1])
             weights.append(layer_weights)
+        weights.append([[1], [-1], [1.5]])
         return weights
 
     @staticmethod
     def generate_weights(input_nodes, output_nodes):
         weights = []
         for _ in range(input_nodes):
-            layer_weights = [random.uniform(-10, 10) for _ in range(output_nodes)]
+            layer_weights = []
+            w = random.uniform(-1, 1)
+            for _ in range(output_nodes):
+                layer_weights.append(w)
+                w = -w
+            # layer_weights = [(w,-w) for _ in range(output_nodes)]
             weights.append(layer_weights)
         return weights
     
@@ -146,15 +152,14 @@ class Network:
     
     ## make a mutation
     def mutate(self):
-        for i in range(0,10):
+        for i in range(0,3):
             ## pick random cell
-            layer_index = random.randint(0, int(len(self.__layers) - 2))
+            layer_index = 0
             layer = self.__edges[layer_index]
             edge_index = random.randint(0, int(len(layer) - 1))
             sub_edge = layer[edge_index] 
-            sub_edge_index = random.randint(0, int(len(sub_edge) - 1))
             ## assign random value
-            sub_edge[sub_edge_index] = min(1, sub_edge[sub_edge_index] * 1.1)
+            sub_edge[0] = sub_edge[1]
 
     ## calculate fitness score
     def fitness(self, test : dict(), override=False):
@@ -194,10 +199,10 @@ def crossover1(solutions):
     ## odds for a parent to stay for the next generation
     stay_odds = 0.35
     ## odds for a mutation
-    mu_odds = 0.01
+    mu_odds = 0.1
     next_gen = []
     for p in solutions:
-        children = random.randint(1, 2)
+        children = 1
         sol1 = p[0]
         sol2 = p[1]
         for _ in range(0, children):
@@ -233,7 +238,7 @@ def select_next(options, practice):
             best = s
     return best
 
-def genetic(practice, population_size=200, max_gen=800, max_con=30):
+def genetic(practice, population_size=40, max_gen=800, max_con=30):
     solutions = [Network() for _ in range(population_size)]
     best_sol = None
     best_score = -1
@@ -251,8 +256,10 @@ def genetic(practice, population_size=200, max_gen=800, max_con=30):
         ## keep for next generation
         solutions.sort(key=fit_sort)
         end = int(0.15 * len(solutions))
-        elite = solutions[:end]
-        solutions = solutions[end:]
+        elite = solutions[-20:]
+        elite_pairs = pair_solutions(elite)
+        elite_cross = crossover1(elite_pairs)
+        solutions = [x for x in solutions if x not in elite]
         ## split to slices and choose who continues on
         solutions = [select_next(sub_solution, practice=practice) for sub_solution in [solutions[i:i+slice_size] for i in range(0, len(solutions), slice_size)]]
 
@@ -271,7 +278,7 @@ def genetic(practice, population_size=200, max_gen=800, max_con=30):
         next_gen = crossover1(solutions=pairs)
         
 
-        solutions = next_gen + elite
+        solutions = next_gen + elite + elite_cross
         ## find best
         next_sol = select_next(solutions, practice=practice)
 
