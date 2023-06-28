@@ -44,9 +44,6 @@ class Network:
         for k in range(y):
             e = self.__edges[k]
             for j in range(y):
-                values[j]
-                e[j]
-                values[k]
                 values[j] += e[j] * values[k]
         if values[-1] > 2:
             return 1
