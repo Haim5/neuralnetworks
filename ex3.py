@@ -1,37 +1,44 @@
 import random
 import sys
 
+## used for calculating new value in crossover process - picks one of the 2
 def select_value(n1, n2):
     if random.randint(0,1) == 1:
         return n1
     return n2
 
+## used for calculating new value in crossover process - picks the average
 def avg_value(n1, n2):
     return (n1 + n2) / 2
 
-
+## Network class
 class Network:
+    ## Constructor
     def __init__(self, e=None):
-        self.num_nodes = [16, 2, 1]
+        ## layers
+        num_nodes = [16, 2, 1]
         if not e:
-            x1 = sum(self.num_nodes)
+            ## no edges given , initialize random values.
+            x1 = sum(num_nodes)
+            ## make matrix
             edges = [[0.0] * x1 for _ in range(x1)]
-            for i in range(self.num_nodes[0]):
+            for i in range(num_nodes[0]):
                 e = edges[i]
                 x2 = random.uniform(0, 1)
-                e[self.num_nodes[0]] = x2
-                e[self.num_nodes[0] + 1] = -x2
-            y = self.num_nodes[0]
-            for i in range(y, y + self.num_nodes[1]):
+                e[num_nodes[0]] = x2
+                e[num_nodes[0] + 1] = -x2
+            y = num_nodes[0]
+            for i in range(y, y + num_nodes[1]):
                 e = edges[i]
-                e[self.num_nodes[0] + self.num_nodes[1]] = 1.5
+                e[num_nodes[0] + num_nodes[1]] = 1.5
             self.__edges = edges
         else:
             self.__edges = e
         self.__fitness = None
-        self.__layers = self.num_nodes
+        self.__layers = num_nodes
       
 
+    ## predict the tag
     def predict(self, values):
         y = sum(self.__layers)
         for k in range(y):
@@ -45,6 +52,7 @@ class Network:
             return 1
         return 0
     
+    ## generate a new Network from self and other Network
     def crossover(self, other, f, mu_odds=0.01):
         next_edges = []
         for i in range(int(sum(self.__layers))):
@@ -53,6 +61,7 @@ class Network:
                 t1.append(f(other.get_edges()[i][j], self.__edges[i][j])) 
             next_edges.append(t1)
         off = Network(e=next_edges)
+        ## mutation
         if random.random() <= mu_odds:
             off.mutate()
         return off
@@ -64,7 +73,7 @@ class Network:
     
     ## make a mutation
     def mutate(self):
-        x = random.randint(1, 5)
+        x = random.randint(1, 3)
         for _ in range(x):
             i = random.randint(0, int(len(self.__edges))-1)
             e = self.__edges[i]
@@ -113,7 +122,7 @@ def crossover1(solutions, mu_odds=0.01, stay_odds=0.35):
     ## odds for a parent to stay for the next generation
     next_gen = []
     for p in solutions:
-        children = random.randint(1, 3)
+        children = random.randint(1, 5)
         sol1 = p[0]
         sol2 = p[1]
 
