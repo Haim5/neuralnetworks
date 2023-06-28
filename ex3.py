@@ -233,13 +233,13 @@ def parse_out(ans, dest):
 
 def main():
     if len(sys.argv) < 2:
-        print("Missing argument")
+        print("Error: Missing argument.")
     else:
         n = sys.argv[1]
         data = "nn" + n + ".txt"
         dest = "wnet" + n + ".txt"
         practice, test = parse_in(data)
-        print("Running, please wait")
+        print("Running, please wait...")
         ans = genetic(practice=practice)
         x = ans.fitness(test, override=True)
         print("Test score: " + str(x))
