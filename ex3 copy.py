@@ -1,8 +1,9 @@
 import random
 import sys
+import math
 
 def sigmoid(x):
-    return 1 / (1 + pow(2.71828, -x))
+    return 1 / (1 + math.exp(-x))
 
 def dot_product(weights, seq):
     print(weights)
@@ -46,6 +47,7 @@ class Network:
 
     def __init__(self, e=None):
         self.num_nodes = [17, 2, 1]
+        random.seed(a=None, version=2)
         if e:
             self.__edges = e
         else:
@@ -224,7 +226,7 @@ def select_next(options, practice):
             best = s
     return best
 
-def genetic(practice, population_size=1000, max_gen=800, max_con=12):
+def genetic(practice, population_size=100, max_gen=800, max_con=12):
     solutions = [Network() for _ in range(population_size)]
     best_sol = None
     best_score = -1
