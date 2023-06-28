@@ -45,14 +45,17 @@ class Network:
             return 1
         return 0
     
-    def crossover(self, other, f):
+    def crossover(self, other, f, mu_odds=0.01):
         next_edges = []
         for i in range(int(sum(self.__layers))):
             t1 = []
             for j in range(int(sum(self.__layers))):
                 t1.append(f(other.get_edges()[i][j], self.__edges[i][j])) 
             next_edges.append(t1)
-        return Network(e=next_edges)
+        off = Network(e=next_edges)
+        if random.random() <= mu_odds:
+            off.mutate()
+        return off
         
 
     def get_edges(self):
@@ -61,7 +64,7 @@ class Network:
     
     ## make a mutation
     def mutate(self):
-        x = random.randint(1, 3)
+        x = random.randint(1, 5)
         for _ in range(x):
             i = random.randint(0, int(len(self.__edges))-1)
             e = self.__edges[i]
@@ -106,31 +109,17 @@ def pair_solutions(solutions):
 
 
 ## random crossover
-def crossover1(solutions):
+def crossover1(solutions, mu_odds=0.01, stay_odds=0.35):
     ## odds for a parent to stay for the next generation
-    stay_odds = 0.35
-    ## odds for a mutation
-    mu_odds = 0.01
     next_gen = []
     for p in solutions:
         children = random.randint(1, 3)
         sol1 = p[0]
         sol2 = p[1]
-        for _ in range(0, children):
-            ## create new
-            off1 = sol2.crossover(sol1, f=select_value)
-            off2 = sol1.crossover(sol2, f=avg_value)
 
-            if random.random() <= mu_odds:
-                    ## mutation
-                off1.mutate()
-            if random.random() <= mu_odds:
-                    ## mutation
-                off2.mutate()
-
-            next_gen.append(off1)
-            next_gen.append(off2)
-
+        next_gen.append(sol1.crossover(sol2, f=avg_value, mu_odds=mu_odds))
+        next_gen += [sol1.crossover(sol2, f=select_value, mu_odds=mu_odds) for _ in range(children)]
+            
         if random.random() <= stay_odds:
             next_gen.append(sol1)
         if random.random() <= stay_odds:
@@ -204,7 +193,7 @@ def genetic(practice, population_size=100, max_gen=100, max_con=20):
     return best_sol
 
 
-def status_bar(status, text, ratio=25):
+def status_bar(status, text, ratio=30):
     current_status = int(status * ratio)
     text += "   [" + "#" * current_status + " " * (ratio - current_status) + "] " + f"{status*100:.2f}" + "%"
   
@@ -253,7 +242,7 @@ def main():
         print("Running, please wait")
         ans = genetic(practice=practice)
         x = ans.fitness(test, override=True)
-        print(x)
+        print("Test score: " + str(x))
         print("Saving network...")
         parse_out(ans=ans, dest=dest)
         print("DONE!")
