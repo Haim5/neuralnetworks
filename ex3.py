@@ -1,10 +1,6 @@
 import random
 import sys
 
-def sigmoid(x):
-    return 1 / (1 + pow(2.71828, -x))
-
-
 def select_value(n1, n2):
     if random.randint(0,1) == 1:
         return n1
@@ -36,17 +32,6 @@ class Network:
         self.__layers = self.num_nodes
       
 
-    
-    def print_weights(self):
-        for i, layer_weights in enumerate(self.__edges):
-            print(f"Weights for layer {i + 1}:")
-            for weights in layer_weights:
-                print(weights)
-            print()
-
-
-
-
     def predict(self, values):
         y = sum(self.__layers)
         for k in range(y):
@@ -69,16 +54,10 @@ class Network:
             next_edges.append(t1)
         return Network(e=next_edges)
         
-        
 
     def get_edges(self):
         return self.__edges
     
-    def get_fitness(self):
-        if(self.__fitness):
-            return self.__fitness
-        else:
-            return 0
     
     ## make a mutation
     def mutate(self):
@@ -109,10 +88,7 @@ class Network:
 
     def parse_out(self):
         return '\n'.join([' '.join(map(str, sublist)) for sublist in self.__edges])
-
-
-    def print(self):
-        print(self.__edges)
+    
 
 
 ## split solutions to pairs
@@ -180,8 +156,9 @@ def genetic(practice, population_size=100, max_gen=100, max_con=20):
     gen = 0
     con = 0
     slice_size = 0
-
+    text = ""
     while gen < max_gen and con < max_con and len(solutions) > slice_size:
+        status_bar(status=float(gen) / float(max_gen), text=text)
         if len(solutions) > 300:
             slice_size = 4
         else:
@@ -194,8 +171,6 @@ def genetic(practice, population_size=100, max_gen=100, max_con=20):
         solutions = solutions[end:]
         ## split to slices and choose who continues on
         solutions = [select_next(sub_solution, practice=practice) for sub_solution in [solutions[i:i+slice_size] for i in range(0, len(solutions), slice_size)]]
-
-
 
         ## make pairs
         if len(solutions) % 2 != 0 and len(solutions) > 1:
@@ -222,13 +197,18 @@ def genetic(practice, population_size=100, max_gen=100, max_con=20):
         else:
             con += 1
         gen += 1
-        print(best_score)
-
-    print("Best fit score: " + str(best_score))
+        text = str(best_score)
+    status_bar(status=1.0, text=text)
+    print("\nBest fit score: " + str(best_score))
     print("Generation: " + str(gen))
     return best_sol
 
 
+def status_bar(status, text, ratio=25):
+    current_status = int(status * ratio)
+    text += "   [" + "#" * current_status + " " * (ratio - current_status) + "] " + f"{status*100:.2f}" + "%"
+  
+    print("\r" + text, end="", flush=True)
 
 
 def parse_in(f):
@@ -274,6 +254,7 @@ def main():
         ans = genetic(practice=practice)
         x = ans.fitness(test, override=True)
         print(x)
+        print("Saving network...")
         parse_out(ans=ans, dest=dest)
         print("DONE!")
 
