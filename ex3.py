@@ -48,11 +48,27 @@ class Network:
     #     self.print_weights()
 
     def __init__(self, e=None):
-        self.num_nodes = [17, 3, 1]
-        if e:
-            self.__edges = e
+        self.num_nodes = [16, 2, 1]
+        
+        if not e:
+
+            
+            x = sum(self.num_nodes)
+            edges = [[0.0] * x for _ in range(x)]
+            for i in range(self.num_nodes[0]):
+                e = edges[i]
+                x = random.uniform(-1, 1)
+                e[self.num_nodes[0]] = x
+                e[self.num_nodes[0] + 1] = -x
+            y = self.num_nodes[0]
+            for i in range(y, y + self.num_nodes[1]):
+                e = edges[i]
+                e[self.num_nodes[0] + self.num_nodes[1]] = 1.5
+            self.__edges = edges
         else:
-            self.__edges = self.initialize_weights()
+            self.__edges = e
+
+        ##self.__layers = layers
         self.__fitness = None
         self.__layers = self.num_nodes
         # self.print_weights()
@@ -68,6 +84,7 @@ class Network:
     @staticmethod
     def generate_weights(input_nodes, output_nodes):
         weights = []
+        
         for _ in range(input_nodes):
             layer_weights = []
             w = random.uniform(-1, 1)
@@ -113,13 +130,16 @@ class Network:
         return result
 
 
-    def predict(self, seq, f=sigmoid):
-        output = [float(x) for x in seq]
-        output.append(1)
-        for i in range(len(self.__layers) - 1):
-            output = self.predict_layer(output, self.__edges[i], f=f)
-        score = output[0]
-        if score > 0.5:
+    def predict(self, values):
+        y = sum(self.__layers)
+        for k in range(y):
+            e = self.__edges[k]
+            for j in range(y):
+                values[j]
+                e[j]
+                values[k]
+                values[j] += e[j] * values[k]
+        if values[-1] > 2:
             return 1
         return 0
     
@@ -129,13 +149,10 @@ class Network:
         # next_edges += other.get_edges()[layer_index:]
         # return Network(e=next_edges)
         next_edges = []
-        for i in range(int(len(self.__edges))):
+        for i in range(int(sum(self.__layers))):
             t1 = []
-            for j in range(int(len(self.__edges[i]))):
-                t2 = []
-                for k in range(int(len(self.__edges[i][j]))):
-                    t2.append(f(other.get_edges()[i][j][k], self.__edges[i][j][k])) 
-                t1.append(t2)
+            for j in range(int(sum(self.__layers))):
+                t1.append(f(other.get_edges()[i][j], self.__edges[i][j])) 
             next_edges.append(t1)
         return Network(e=next_edges)
         
@@ -152,14 +169,12 @@ class Network:
     
     ## make a mutation
     def mutate(self):
-        for i in range(0,3):
-            ## pick random cell
-            layer_index = 0
-            layer = self.__edges[layer_index]
-            edge_index = random.randint(0, int(len(layer) - 1))
-            sub_edge = layer[edge_index] 
-            ## assign random value
-            sub_edge[0] = sub_edge[1]
+        x = random.randint(1, 3)
+        for _ in range(x):
+            i = random.randint(0, int(len(self.__edges))-1)
+            e = self.__edges[i]
+            j = random.randint(0, int(len(e))-1)
+            e[j] = random.uniform(-1, 1)
 
     ## calculate fitness score
     def fitness(self, test : dict(), override=False):
@@ -167,7 +182,11 @@ class Network:
             return self.__fitness
         correct = 0
         for key, tag in test.items():
-            if int(tag) == self.predict(seq=key):
+            v = [float(s) for s in key]
+            v.append(0.0)
+            v.append(0.0)
+            v.append(0.0)
+            if int(tag) == self.predict(values=v):
                 correct += 1
         if len(test) > 0:
             self.__fitness = correct / len(test)
@@ -248,7 +267,7 @@ def genetic(practice, population_size=40, max_gen=800, max_con=30):
 
     while gen < max_gen and con < max_con and len(solutions) > slice_size:
         if len(solutions) > 10000:
-            slice_size = 4
+            slice_size = 3
         else:
             slice_size = 2
         ## mix
