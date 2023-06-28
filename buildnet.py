@@ -43,7 +43,7 @@ def parse_net(f):
 def parse_out(net, data, dest):
     with open(dest, 'w') as file:
         for d in data:
-            file.write(d + "\t" + str(int(net.predict(d))) + "\n")
+            file.write(str(int(net.predict(d))) + "\n")
 
 
 def main():
