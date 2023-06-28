@@ -49,18 +49,17 @@ class Network:
 
     def __init__(self, e=None):
         self.num_nodes = [16, 2, 1]
-        random.seed(a=None, version=2)
         
         if not e:
 
             
-            x = sum(self.num_nodes)
-            edges = [[0.0] * x for _ in range(x)]
+            x1 = sum(self.num_nodes)
+            edges = [[0.0] * x1 for _ in range(x1)]
             for i in range(self.num_nodes[0]):
                 e = edges[i]
-                x = random.uniform(-1, 1)
-                e[self.num_nodes[0]] = x
-                e[self.num_nodes[0] + 1] = -x
+                x2 = random.uniform(0, 1)
+                e[self.num_nodes[0]] = x2
+                e[self.num_nodes[0] + 1] = -x2
             y = self.num_nodes[0]
             for i in range(y, y + self.num_nodes[1]):
                 e = edges[i]
@@ -76,10 +75,9 @@ class Network:
 
     def initialize_weights(self):
         weights = []
-        for i in range(len(self.num_nodes) - 2):
+        for i in range(len(self.num_nodes) - 1):
             layer_weights = self.generate_weights(self.num_nodes[i], self.num_nodes[i + 1])
             weights.append(layer_weights)
-        weights.append([[1], [-1], [1.5]])
         return weights
 
     @staticmethod
@@ -87,12 +85,8 @@ class Network:
         weights = []
         
         for _ in range(input_nodes):
-            layer_weights = []
-            w = random.uniform(-1, 1)
-            for _ in range(output_nodes):
-                layer_weights.append(w)
-                w = -w
-            # layer_weights = [(w,-w) for _ in range(output_nodes)]
+            x = random.uniform(-1, 1)
+            layer_weights = [x for _ in range(output_nodes)]
             weights.append(layer_weights)
         return weights
     
@@ -217,12 +211,12 @@ def pair_solutions(solutions):
 ## random crossover
 def crossover1(solutions):
     ## odds for a parent to stay for the next generation
-    stay_odds = 1
+    stay_odds = 0.35
     ## odds for a mutation
-    mu_odds = 0.05
+    mu_odds = 0.01
     next_gen = []
     for p in solutions:
-        children = random.randint(1,2)
+        children = random.randint(1, 3)
         sol1 = p[0]
         sol2 = p[1]
         for _ in range(0, children):
@@ -258,7 +252,7 @@ def select_next(options, practice):
             best = s
     return best
 
-def genetic(practice, population_size=40, max_gen=800, max_con=30):
+def genetic(practice, population_size=100, max_gen=800, max_con=30):
     solutions = [Network() for _ in range(population_size)]
     best_sol = None
     best_score = -1
@@ -267,19 +261,17 @@ def genetic(practice, population_size=40, max_gen=800, max_con=30):
     slice_size = 0
 
     while gen < max_gen and con < max_con and len(solutions) > slice_size:
-        if len(solutions) > 10000:
-            slice_size = 3
+        if len(solutions) > 1000:
+            slice_size = 4
         else:
             slice_size = 2
         ## mix
         random.shuffle(solutions)
         ## keep for next generation
-        solutions.sort(key=fit_sort)
+        ##solutions.sort(key=fit_sort)
         end = int(0.15 * len(solutions))
-        elite = solutions[-20:]
-        elite_pairs = pair_solutions(elite)
-        elite_cross = crossover1(elite_pairs)
-        solutions = [x for x in solutions if x not in elite]
+        elite = solutions[:end]
+        solutions = solutions[end:]
         ## split to slices and choose who continues on
         solutions = [select_next(sub_solution, practice=practice) for sub_solution in [solutions[i:i+slice_size] for i in range(0, len(solutions), slice_size)]]
 
@@ -298,7 +290,7 @@ def genetic(practice, population_size=40, max_gen=800, max_con=30):
         next_gen = crossover1(solutions=pairs)
         
 
-        solutions = elite + elite_cross
+        solutions = next_gen + elite
         ## find best
         next_sol = select_next(solutions, practice=practice)
 
