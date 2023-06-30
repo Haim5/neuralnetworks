@@ -27,13 +27,13 @@ class Network:
             edges = [[0.0] * x1 for _ in range(x1)]
             for i in range(num_nodes[0]):
                 e = edges[i]
-                x2 = random.uniform(0, 1)
-                e[num_nodes[0]] = x2
-                e[num_nodes[0] + 1] = -x2
+                ##x2 = random.uniform(0, 1)
+                e[num_nodes[0]] = random.uniform(-1, 1)
+                e[num_nodes[0] + 1] = random.uniform(-1, 1)
             y = num_nodes[0]
             for i in range(y, y + num_nodes[1]):
                 e = edges[i]
-                e[num_nodes[0] + num_nodes[1]] = random.uniform(-1, 1)
+                e[num_nodes[0] + num_nodes[1]] = 1
             self.__edges = edges
         else:
             self.__edges = e
@@ -47,7 +47,7 @@ class Network:
         for k in range(y):
             e = self.__edges[k]
             for j in range(y):
-                values[j] += e[j] * relu(values[k])
+                values[j] += e[j] * values[k]
         if values[-1] > 0:
             return 1
         return 0
@@ -73,7 +73,7 @@ class Network:
     
     ## make a mutation
     def mutate(self):
-        x = random.randint(1, 3)
+        x = random.randint(1, 5)
         for _ in range(x):
             i = random.randint(0, int(len(self.__edges))-1)
             e = self.__edges[i]
@@ -186,7 +186,7 @@ def genetic(practice, population_size=100, max_gen=100, max_con=20):
         pairs = pair_solutions(solutions)
         
         ## crossover
-        next_gen = crossover1(solutions=pairs)
+        next_gen = crossover1(solutions=pairs, mu_odds=0.02)
         solutions = next_gen + elite
         ## find best
         next_sol = select_next(solutions, practice=practice)
