@@ -11,6 +11,9 @@ def select_value(n1, n2):
 def avg_value(n1, n2):
     return (n1 + n2) / 2
 
+def relu(x):
+    return max(0.0, x)
+
 ## Network class
 class Network:
     ## Constructor
@@ -30,7 +33,7 @@ class Network:
             y = num_nodes[0]
             for i in range(y, y + num_nodes[1]):
                 e = edges[i]
-                e[num_nodes[0] + num_nodes[1]] = 1.5
+                e[num_nodes[0] + num_nodes[1]] = random.uniform(-1, 1)
             self.__edges = edges
         else:
             self.__edges = e
@@ -44,8 +47,8 @@ class Network:
         for k in range(y):
             e = self.__edges[k]
             for j in range(y):
-                values[j] += e[j] * values[k]
-        if values[-1] > 2:
+                values[j] += e[j] * relu(values[k])
+        if values[-1] > 0:
             return 1
         return 0
     
@@ -70,7 +73,7 @@ class Network:
     
     ## make a mutation
     def mutate(self):
-        x = random.randint(1, 5)
+        x = random.randint(1, 3)
         for _ in range(x):
             i = random.randint(0, int(len(self.__edges))-1)
             e = self.__edges[i]
