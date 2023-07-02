@@ -8,14 +8,8 @@ for wnet0 run:
 for wnet1 run:
 > python3 buildnet1.py
 
-for result0 run either:
+for result0 run:
 > python3 runnet0.py
 
-or:
-> python3 runnet0.py went0.py testnet0.py
-
-for result1 run either:
+for result1 run:
 > python3 runnet1.py
-
-or:
-> python3 runnet1.py went1.py testnet1.py
