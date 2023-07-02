@@ -10,10 +10,10 @@ for wnet1 run
 
 for result0 run
 > python3 runnet0.py
-# Or
+### Or
 > python3 runnet0.py went0.py testnet0.py
 
 for result1 run
 > python3 runnet1.py
-# Or
+### Or
 > python3 runnet1.py went1.py testnet1.py
