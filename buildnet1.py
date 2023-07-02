@@ -1,5 +1,4 @@
 import random
-import sys
 
 ## used for calculating new value in crossover process - picks one of the 2
 def select_value(n1, n2):
@@ -48,7 +47,9 @@ class Network:
             e = self.__edges[k]
             for j in range(y):
                 values[j] += e[j] * values[k]
-        if values[-1] > 0:
+            for i in range(y):
+                values[i] = relu(values[i])
+        if values[-1] < 2:
             return 1
         return 0
     
