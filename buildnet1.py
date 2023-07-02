@@ -26,7 +26,6 @@ class Network:
             edges = [[0.0] * x1 for _ in range(x1)]
             for i in range(num_nodes[0]):
                 e = edges[i]
-                ##x2 = random.uniform(0, 1)
                 e[num_nodes[0]] = random.uniform(-1, 1)
                 e[num_nodes[0] + 1] = random.uniform(-1, 1)
             y = num_nodes[0]
@@ -216,30 +215,15 @@ def status_bar(status, text, ratio=30):
 ## parse the data to a dictionary
 def parse_in(f):
     practice = dict()
-    test = dict()
     # Read the data from the original file
     with open(f, 'r') as file:
         data = file.readlines()
 
-    # Shuffle the data randomly
-    random.shuffle(data)
+        for line in data:
+            values = line.split()
+            practice[values[0]] = values[1]
 
-    # Determine the split index based on the desired percentage
-    split_index = int(0.75 * len(data))
-
-    # Split the data into two parts
-    part1 = data[:split_index]
-    part2 = data[split_index:]
-
-    for line in part1:
-        values = line.split()
-        practice[values[0]] = values[1]
-
-    for line in part2:
-        values = line.split()
-        test[values[0]] = values[1]
-
-    return practice, test
+    return practice
 
 ## parse output - wnet file
 def parse_out(ans, dest):
@@ -249,11 +233,9 @@ def parse_out(ans, dest):
 def main():
     data = "nn1.txt"
     dest = "wnet1.txt"
-    practice, test = parse_in(data)
+    practice = parse_in(data)
     print("Running, please wait...")
     ans = genetic(practice=practice)
-    x = ans.fitness(test, override=True)
-    print("Test score: " + str(x))
     print("Saving network...")
     parse_out(ans=ans, dest=dest)
     print("DONE!")
