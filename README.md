@@ -1,9 +1,19 @@
 # neuralnetworks
 Neural network using genetic algorithm
 
-## How to run it
+## Running instructions
 for wnet0 run 
-> python3 ex3.py 0
+> python3 buildnet0.py
 
 for wnet1 run 
-> python3 ex3.py 1
+> python3 buildnet1.py
+
+for result0 run
+> python3 runnet0.py
+# Or
+> python3 runnet0.py went0.py testnet0.py
+
+for result1 run
+> python3 runnet1.py
+# Or
+> python3 runnet1.py went1.py testnet1.py
