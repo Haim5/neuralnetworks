@@ -1,7 +1,3 @@
-
-import sys
-
-
 class Network:
     def __init__(self, e):
         self.__edges = e
@@ -45,23 +41,14 @@ def parse_net(f):
 def parse_out(net, data, dest):
     with open(dest, 'w') as file:
         for d in data:
-            d = d.rstrip('\n')
-            res = str(int(net.predict(d)))
-            file.write(d + " " + res + "\n")
+            file.write(str(int(net.predict(d))) + "\n")
 
 def main():
-    n = '1'
-    if len(sys.argv) < 3:
-        print("No files given. Assuming wnet and testnet exist in folder...")
-        wnet = "wnet" + n + ".txt"
-        data = "testnet" + n + ".txt"
-    else:
-        print("Running, please wait...")
-        wnet = sys.argv[1]
-        data = sys.argv[2]
-
-    dest = "result" + n + ".txt"
-    print("Loading data")
+    print("Running, please wait...")
+    data = "testnet1.txt"
+    dest = "result1.txt"
+    wnet = "wnet1.txt"
+    print("Loading data...")
     test = parse_in(data)
     print("Loading net...")
     net = parse_net(f=wnet)
