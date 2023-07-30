@@ -41,7 +41,8 @@ def parse_net(f):
 def parse_out(net, data, dest):
     with open(dest, 'w') as file:
         for d in data:
-            file.write(str(int(net.predict(d))) + "\n")
+            d2 = d.split()
+            file.write(str(int(net.predict(d2[0]))) + "\n")
 
 def main():
     print("Running, please wait...")
